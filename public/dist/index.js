@@ -46,29 +46,33 @@ async function showRepos(id, login) {
             description: el.description,
             fork: el.fork,
             stargazers_count: el.stargazers_count,
+            htmlUrl: el.html_url
         };
-        const repoName = createElement("h3");
+        const repoName = createElement("a");
         const repoDescription = createElement("p");
         const repoFork = createElement("p");
         const repoStar = createElement("p");
         const repoSingleDiv = createElement('div');
         const bodyDiv = createElement('div');
         repoName.textContent = element.name;
-        repoName.setAttribute('class', "card-title");
+        repoName.setAttribute('href', element.htmlUrl);
+        repoName.setAttribute('class', "btn btn-dark text-uppercase");
         repoDescription.textContent = element.description;
-        repoDescription.setAttribute('class', "card-text");
         repoFork.textContent = 'Fork? ' + element.fork;
         repoFork.setAttribute('class', "list-group-item text-dark");
         repoStar.textContent = 'Quantidade de estrelas: ' + element.stargazers_count;
         repoStar.setAttribute('class', "list-group-item text-dark");
         repoSingleDiv.setAttribute('class', "card-body");
         repoSingleDiv.append(repoName, repoDescription, repoFork, repoStar);
-        bodyDiv.setAttribute('class', 'card bg-secondary m-2');
+        bodyDiv.setAttribute('class', 'card bg-secondary m-2 text-left');
         bodyDiv.append(repoSingleDiv);
         reposDiv.append(bodyDiv);
     });
     const clearBtn = createElement("button");
-    clearBtn.addEventListener('click', (ev) => reposDiv.innerHTML = "");
+    clearBtn.addEventListener('click', (ev) => {
+        reposDiv.innerHTML = "";
+        reposDiv.parentElement.parentElement.querySelector('button').dataset.open = 'false';
+    });
     clearBtn.textContent = `Limpar Repositórios do usuário`;
     clearBtn.setAttribute('class', "btn btn-secondary m-2");
     reposDiv.append(clearBtn);
@@ -115,11 +119,16 @@ function createUserInterface(el) {
     newName.textContent = newUser.name;
     let newPic = createElement('img');
     newPic.setAttribute("src", newUser.photoUrl);
-    newPic.setAttribute("width", "150px");
+    newPic.setAttribute("class", "img-thumbnail rounded-circle imgWidth");
     let newUserId = createElement('h3');
     newUserId.textContent = newUser.id + " - " + newUser.login;
-    let bio = createElement('p');
-    bio.textContent = newUser.bio;
+    let bio = createElement('div');
+    // bio.innerHTML = newUser.bio.replaceAll(/(&nbsp;)+/g,"\n")
+    let newText = newUser?.bio?.replaceAll(/( )+/g, "\n");
+    let textArray = newText?.split('\n');
+    console.log(textArray);
+    textArray?.forEach((el) => bio.append(createElement('p').textContent = el, createElement('br')));
+    bio.setAttribute("class", "text-muted h6");
     let publicRepos = createElement('p');
     publicRepos.textContent = `O usuário tem ${newUser.reposQtd} repositórios públicos.`;
     let repository = createElement('div');
@@ -127,9 +136,16 @@ function createUserInterface(el) {
     let reposUrl = createElement('button');
     reposUrl.textContent = 'Veja aqui o repositório do usuário';
     reposUrl.setAttribute('class', "btn btn-secondary m-2");
+    reposUrl.dataset.open = "false";
     newDiv.append(newName, newPic, br(), newUserId, bio, publicRepos, reposUrl, repository, createElement('hr'));
     reposUrl.addEventListener('click', (ev) => {
-        showRepos(repository.id, newUser.login);
+        if (reposUrl.dataset.open === "false") {
+            reposUrl.dataset.open = "true";
+            showRepos(repository.id, newUser.login);
+        }
+        else {
+            alert('Repositório já aberto!');
+        }
     });
     historyDiv.append(newDiv);
 }
